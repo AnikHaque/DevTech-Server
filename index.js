@@ -430,3 +430,8 @@ app.get("/", async (req, res) => {
     res.status(500).send(" MongoDB connection failed: " + error.message);
   }
 });
+
+// 🚀 Start the server
+app.listen(port, () => {
+  console.log(`🚀 Server is running on http://localhost:${port}`);
+});
