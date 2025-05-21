@@ -7,14 +7,11 @@ const bcrypt = require("bcryptjs");
 const app = express();
 const port = 8800;
 
-// Use a strong secret in production and store it in .env
 const JWT_SECRET = "your_jwt_secret_key";
 
-// Middleware
 app.use(express.json());
 app.use(cors());
 
-// MongoDB URI (replace with your own credentials if needed)
 const uri =
   "mongodb+srv://freelance:SJ5HW66Mk5XOobot@cluster0.ahhvv5a.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
@@ -26,7 +23,6 @@ const client = new MongoClient(uri, {
   },
 });
 
-// 🔒 JWT Middleware
 function verifyToken(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
@@ -43,7 +39,6 @@ function verifyToken(req, res, next) {
   }
 }
 
-// Main backend logic
 async function run() {
   try {
     await client.connect();
@@ -65,7 +60,6 @@ async function run() {
       }
     });
 
-    // PUT to update a task
     app.put("/api/tasks/:id", verifyToken, async (req, res) => {
       const { title, category, description, deadline, budget } = req.body;
       const taskId = req.params.id;
@@ -95,7 +89,6 @@ async function run() {
       }
     });
 
-    // DELETE a task by ID
     app.delete("/api/tasks/:id", verifyToken, async (req, res) => {
       const taskId = req.params.id;
       const userEmail = req.user.email;
@@ -122,35 +115,33 @@ async function run() {
       }
     });
 
-    // GET all bids for a specific task (Updated to include user details and bid count)
     app.get("/api/bids/:taskId", verifyToken, async (req, res) => {
       const { taskId } = req.params;
       try {
-        // Fetch all bids for the given task with user details
         const bids = await db
           .collection("bids")
           .aggregate([
             {
-              $match: { taskId: new ObjectId(taskId) }, // Match the taskId
+              $match: { taskId: new ObjectId(taskId) },
             },
             {
               $lookup: {
-                from: "users", // Join with the "users" collection
-                localField: "userEmail", // The field in bids collection storing the user's email
-                foreignField: "email", // The field in the "users" collection to match with
-                as: "userDetails", // Name of the new field to store the matched user details
+                from: "users",
+                localField: "userEmail",
+                foreignField: "email",
+                as: "userDetails",
               },
             },
             {
-              $unwind: "$userDetails", // Flatten the userDetails array
+              $unwind: "$userDetails",
             },
             {
               $project: {
                 _id: 1,
                 userEmail: 1,
-                bidderName: "$userDetails.name", // Extract name from userDetails
-                amount: 1, // Assuming you store bid amount in the "amount" field
-                message: 1, // Assuming you store the bid message in the "message" field
+                bidderName: "$userDetails.name",
+                amount: 1,
+                message: 1,
               },
             },
           ])
@@ -200,6 +191,23 @@ async function run() {
       try {
         const db = client.db("freelance-marketplace");
         const tasks = await db.collection("tasks").find().toArray();
+        res.status(200).json(tasks);
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+        res.status(500).json({ message: "Error fetching tasks" });
+      }
+    });
+    // GET top 6 tasks sorted by upcoming deadlines
+    app.get("/api/featured", async (req, res) => {
+      try {
+        const db = client.db("freelance-marketplace");
+        const tasks = await db
+          .collection("tasks")
+          .find()
+          .sort({ deadline: 1 }) // sort by soonest deadlines
+          .limit(6) // return only 6 tasks
+          .toArray();
+
         res.status(200).json(tasks);
       } catch (error) {
         console.error("Error fetching tasks:", error);
@@ -382,9 +390,9 @@ run().catch(console.dir);
 app.get("/", async (req, res) => {
   try {
     await client.db("admin").command({ ping: 1 });
-    res.send("✅ MongoDB is connected. Server is running on port " + port);
+    res.send(" MongoDB is connected. Server is running on port " + port);
   } catch (error) {
-    res.status(500).send("❌ MongoDB connection failed: " + error.message);
+    res.status(500).send(" MongoDB connection failed: " + error.message);
   }
 });
 
