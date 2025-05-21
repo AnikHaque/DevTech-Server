@@ -41,8 +41,8 @@ function verifyToken(req, res, next) {
 
 async function run() {
   try {
-    await client.connect();
-    console.log("✅ Connected to MongoDB");
+    // await client.connect();
+    // console.log("✅ Connected to MongoDB");
 
     const db = client.db("freelance-marketplace");
     const users = db.collection("users");
