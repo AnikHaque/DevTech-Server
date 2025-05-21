@@ -7,7 +7,7 @@ const bcrypt = require("bcryptjs");
 const app = express();
 const port = 8800;
 
-const JWT_SECRET = "123456";
+const JWT_SECRET = "1234556";
 
 app.use(express.json());
 app.use(cors());
