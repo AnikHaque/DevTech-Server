@@ -7,7 +7,7 @@ const bcrypt = require("bcryptjs");
 const app = express();
 const port = 8800;
 
-const JWT_SECRET = "your_jwt_secret_key";
+const JWT_SECRET = "123456";
 
 app.use(express.json());
 app.use(cors());
@@ -429,9 +429,4 @@ app.get("/", async (req, res) => {
   } catch (error) {
     res.status(500).send(" MongoDB connection failed: " + error.message);
   }
-});
-
-// 🚀 Start the server
-app.listen(port, () => {
-  console.log(`🚀 Server is running on http://localhost:${port}`);
 });
