@@ -41,9 +41,6 @@ function verifyToken(req, res, next) {
 
 async function run() {
   try {
-    // await client.connect();
-    // console.log("✅ Connected to MongoDB");
-
     const db = client.db("freelance-marketplace");
     const users = db.collection("users");
     const tasks = db.collection("tasks");
@@ -250,6 +247,60 @@ async function run() {
       }
     });
 
+    // GET popular tasks based on number of bids
+    app.get("/api/popular-tasks", async (req, res) => {
+      try {
+        const db = client.db("freelance-marketplace");
+
+        const popularTasks = await db
+          .collection("bids")
+          .aggregate([
+            {
+              $group: {
+                _id: "$taskId",
+                bidCount: { $sum: 1 },
+              },
+            },
+            {
+              $sort: { bidCount: -1 }, // sort by highest number of bids
+            },
+            {
+              $limit: 6, // top 6 most popular tasks
+            },
+            {
+              $lookup: {
+                from: "tasks",
+                localField: "_id",
+                foreignField: "_id",
+                as: "taskDetails",
+              },
+            },
+            {
+              $unwind: "$taskDetails",
+            },
+            {
+              $project: {
+                _id: "$taskDetails._id",
+                title: "$taskDetails.title",
+                category: "$taskDetails.category",
+                description: "$taskDetails.description",
+                deadline: "$taskDetails.deadline",
+                budget: "$taskDetails.budget",
+                email: "$taskDetails.email",
+                createdBy: "$taskDetails.createdBy",
+                bidCount: 1,
+              },
+            },
+          ])
+          .toArray();
+
+        res.status(200).json(popularTasks);
+      } catch (error) {
+        console.error("Error fetching popular tasks:", error);
+        res.status(500).json({ message: "Error fetching popular tasks" });
+      }
+    });
+
     // GET task by ID
     app.get("/api/tasks/:id", async (req, res) => {
       try {
@@ -355,6 +406,18 @@ async function run() {
           .json({ message: "User registered successfully", token });
       } catch (err) {
         res.status(500).json({ message: "Internal server error" });
+      }
+    });
+    app.get("/api/users", async (req, res) => {
+      try {
+        const result = await client
+          .db("freelance-marketplace")
+          .collection("users")
+          .find()
+          .toArray();
+        res.status(200).json(result);
+      } catch (error) {
+        res.status(500).json({ message: "Error fetching users" });
       }
     });
 
