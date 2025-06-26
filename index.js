@@ -284,6 +284,7 @@ async function run() {
               $project: {
                 _id: "$taskDetails._id",
                 title: "$taskDetails.title",
+                image: "$taskDetails.image",
                 category: "$taskDetails.category",
                 description: "$taskDetails.description",
                 deadline: "$taskDetails.deadline",
