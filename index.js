@@ -199,7 +199,8 @@ async function run() {
     });
 
     app.post("/api/add-task", verifyToken, async (req, res) => {
-      const { title, category, description, deadline, budget } = req.body;
+      const { title, category, description, deadline, budget, image } =
+        req.body;
       const user = req.user;
 
       try {
@@ -209,6 +210,7 @@ async function run() {
           description,
           deadline,
           budget,
+          image,
           email: user.email,
           createdBy: user.name,
         });
